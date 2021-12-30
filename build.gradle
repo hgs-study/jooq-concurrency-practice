@@ -1,6 +1,7 @@
 plugins {
-    id 'org.springframework.boot' version '2.6.2'
+    id 'org.springframework.boot' version '2.5.6'
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'nu.studer.jooq' version '5.2.1'
     id 'java'
 }
 
@@ -19,15 +20,71 @@ repositories {
 }
 
 dependencies {
+    jooqGenerator('mysql:mysql-connector-java:8.0.27')
+    implementation 'mysql:mysql-connector-java'
     implementation 'org.springframework.boot:spring-boot-starter-jooq'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    runtimeOnly 'mysql:mysql-connector-java'
-    annotationProcessor 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlomb+6ok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 test {
     useJUnitPlatform()
 }
+
+jooq {
+    version = dependencyManagement.importedProperties['jooq.version'] // use jOOQ version defined in Spring Boot
+
+    configurations {
+        main {
+            generateSchemaSourceOnCompilation = true // default (can be omitted)
+            generationTool {
+                logging = org.jooq.meta.jaxb.Logging.DEBUG
+                jdbc {
+                    driver = 'com.mysql.cj.jdbc.Driver'
+                    url = 'jdbc:mysql://localhost:3306/jooq_test'
+                    user = 'root'
+                    password = 'hgs3164'
+                }
+                generator {
+                    name = 'org.jooq.codegen.DefaultGenerator'
+                    database {
+                        name = 'org.jooq.meta.mysql.MySQLDatabase'
+                        unsignedTypes = false
+                        inputSchema = 'jooq_test'
+                        includes = '.*'
+                        forcedTypes {
+                            forcedType {
+                                name = 'varchar'
+                                includeExpression = '.*'
+                                includeTypes = 'JSONB?'
+                            }
+                            forcedType {
+                                name = 'varchar'
+                                includeExpression = '.*'
+                                includeTypes = 'INET'
+                            }
+                        }
+                    }
+
+                    generate {
+                        javaTimeTypes = true    // java.time.*
+                        deprecated = false
+                        records = true
+                        immutablePojos = true
+                        fluentSetters = true
+                    }
+
+                    target {
+                        packageName = 'jooq.dsl'
+                        directory = 'src/generated/jooq/'
+                    }
+                    strategy.name = 'org.jooq.codegen.DefaultGeneratorStrategy'
+                }
+            }
+        }
+    }
+}
+
