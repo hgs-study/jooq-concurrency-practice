@@ -15,6 +15,7 @@ public class Subscribe {
     private ContentType contentType;
     private Long contentIdx;
     private Long hit;
+//    private Integer version;
 
     public Subscribe(String register, ServiceType serviceType, ContentType contentType, Long contentIdx) {
         this.register = register;

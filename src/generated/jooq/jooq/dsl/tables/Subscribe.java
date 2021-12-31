@@ -76,7 +76,7 @@ public class Subscribe extends TableImpl<SubscribeRecord> {
     /**
      * The column <code>jooq_test.subscribe.hit</code>.
      */
-    public final TableField<SubscribeRecord, Long> HIT = createField(DSL.name("hit"), SQLDataType.BIGINT, this, "");
+    public final TableField<SubscribeRecord, Long> HIT = createField(DSL.name("hit"), SQLDataType.BIGINT.defaultValue(DSL.inline("0", SQLDataType.BIGINT)), this, "");
 
     private Subscribe(Name alias, Table<SubscribeRecord> aliased) {
         this(alias, aliased, null);
