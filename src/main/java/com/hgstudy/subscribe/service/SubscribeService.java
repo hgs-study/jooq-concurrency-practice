@@ -3,10 +3,13 @@ package com.hgstudy.subscribe.service;
 import com.hgstudy.subscribe.domain.Subscribe;
 import com.hgstudy.subscribe.repository.SubscribeRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.jooq.exception.DataChangedException;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SubscribeService {
 
     private final SubscribeRepository subscribeRepository;
@@ -36,6 +39,12 @@ public class SubscribeService {
     }
 
     public void testPlusHitOptimistic(String register){
-        subscribeRepository.plusHitOptimistic(register);
+        try {
+            subscribeRepository.plusHitOptimistic(register);
+        }catch (DataChangedException e){
+            log.error("e.getMessage(): {} ,e: {}",e.getMessage(),e);
+
+            subscribeRepository.plusHitOptimistic(register);
+        }
     }
 }

@@ -26,7 +26,7 @@ public class SubscribeConcurrencyTest {
     private SubscribeRepository subscribeRepository;
 
     private static final String REGISTER = "HyunGunSoo";
-    private static int THREAD_LENGTH = 1;
+    private static int THREAD_LENGTH = 10;
 
     @BeforeEach
     public void setUp(){
