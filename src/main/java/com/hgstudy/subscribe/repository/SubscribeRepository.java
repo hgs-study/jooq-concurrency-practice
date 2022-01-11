@@ -1,6 +1,7 @@
 package com.hgstudy.subscribe.repository;
 
 import com.hgstudy.subscribe.domain.Subscribe;
+import jooq.dsl.tables.records.SubscribeRecord;
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
@@ -43,6 +44,16 @@ public class SubscribeRepository {
             .execute();
     }
 
+    public void testSave(Subscribe subscribe){
+        SubscribeRecord subscribeRecord = context.newRecord(SUBSCRIBE);
+
+        subscribeRecord.setRegister(subscribe.getRegister());
+        subscribeRecord.setService(subscribe.getServiceType().toString());
+        subscribeRecord.setContentType(subscribe.getContentType().toString());
+        subscribeRecord.setContentIdx(subscribe.getContentIdx());
+        subscribeRecord.store();
+    }
+
     public Subscribe findByRegister(String register){
         return context
                 .selectFrom(SUBSCRIBE)
@@ -73,7 +84,7 @@ public class SubscribeRepository {
             .execute();
     }
 
-    public void plusHitOptimistic(String register){
+    public void plusHitPessimistic(String register){
         context.transaction(configuration ->{
             Subscribe subscribe = DSL.using(configuration)
                                     .selectFrom(SUBSCRIBE)
@@ -91,7 +102,7 @@ public class SubscribeRepository {
         });
     }
 
-    public void plusHitPessimistic(String register){
+    public void plusHitPessimistic_02(String register){
 //        [[[Pessimistic - Share Lock]]]
 //        context.transaction(configuration ->{
 //            Subscribe subscribe = DSL.using(configuration)
@@ -115,7 +126,7 @@ public class SubscribeRepository {
             Subscribe subscribe = DSL.using(configuration)
                                     .selectFrom(SUBSCRIBE)
                                     .where(SUBSCRIBE.REGISTER.eq(register))
-                                    .forUpdate()
+//                                    .forUpdate()
                                     .fetchOneInto(Subscribe.class);
 
             Long hit = subscribe.getHit();
@@ -126,6 +137,17 @@ public class SubscribeRepository {
                     .set(SUBSCRIBE.HIT, hit + 1L)
                     .where(SUBSCRIBE.REGISTER.eq(register))
                     .execute();
+        });
+    }
+
+    public void plusHitOptimistic(String register){
+
+        getOptimisticContext().transaction(configuration -> {
+            SubscribeRecord subscribeRecord = DSL.using(configuration)
+                    .fetchOne(SUBSCRIBE, SUBSCRIBE.REGISTER.eq(register));
+
+            subscribeRecord.setHit(subscribeRecord.getHit() + 1L);
+            subscribeRecord.store();
         });
     }
 

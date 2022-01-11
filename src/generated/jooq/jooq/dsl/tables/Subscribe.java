@@ -16,7 +16,7 @@ import org.jooq.ForeignKey;
 import org.jooq.Identity;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row6;
+import org.jooq.Row7;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -78,6 +78,11 @@ public class Subscribe extends TableImpl<SubscribeRecord> {
      */
     public final TableField<SubscribeRecord, Long> HIT = createField(DSL.name("hit"), SQLDataType.BIGINT.defaultValue(DSL.inline("0", SQLDataType.BIGINT)), this, "");
 
+    /**
+     * The column <code>jooq_test.subscribe.version</code>.
+     */
+    public final TableField<SubscribeRecord, Integer> VERSION = createField(DSL.name("version"), SQLDataType.INTEGER.defaultValue(DSL.inline("0", SQLDataType.INTEGER)), this, "");
+
     private Subscribe(Name alias, Table<SubscribeRecord> aliased) {
         this(alias, aliased, null);
     }
@@ -132,6 +137,11 @@ public class Subscribe extends TableImpl<SubscribeRecord> {
     }
 
     @Override
+    public TableField<SubscribeRecord, Integer> getRecordVersion() {
+        return VERSION;
+    }
+
+    @Override
     public Subscribe as(String alias) {
         return new Subscribe(DSL.name(alias), this);
     }
@@ -158,11 +168,11 @@ public class Subscribe extends TableImpl<SubscribeRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row6 type methods
+    // Row7 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row6<Long, String, String, String, Long, Long> fieldsRow() {
-        return (Row6) super.fieldsRow();
+    public Row7<Long, String, String, String, Long, Long, Integer> fieldsRow() {
+        return (Row7) super.fieldsRow();
     }
 }

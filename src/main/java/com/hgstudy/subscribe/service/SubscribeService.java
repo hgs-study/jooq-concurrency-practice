@@ -31,11 +31,11 @@ public class SubscribeService {
         subscribeRepository.deleteByRegister(register);
     }
 
-    public void plusHitOptimistic(String register){
-        subscribeRepository.plusHitOptimistic(register);
-    }
-
     public void plusHitPessimistic(String register){
         subscribeRepository.plusHitPessimistic(register);
+    }
+
+    public void testPlusHitOptimistic(String register){
+        subscribeRepository.plusHitOptimistic(register);
     }
 }

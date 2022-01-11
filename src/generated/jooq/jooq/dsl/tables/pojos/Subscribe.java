@@ -15,12 +15,13 @@ public class Subscribe implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private final Long   idx;
-    private final String register;
-    private final String service;
-    private final String contentType;
-    private final Long   contentIdx;
-    private final Long   hit;
+    private final Long    idx;
+    private final String  register;
+    private final String  service;
+    private final String  contentType;
+    private final Long    contentIdx;
+    private final Long    hit;
+    private final Integer version;
 
     public Subscribe(Subscribe value) {
         this.idx = value.idx;
@@ -29,15 +30,17 @@ public class Subscribe implements Serializable {
         this.contentType = value.contentType;
         this.contentIdx = value.contentIdx;
         this.hit = value.hit;
+        this.version = value.version;
     }
 
     public Subscribe(
-        Long   idx,
-        String register,
-        String service,
-        String contentType,
-        Long   contentIdx,
-        Long   hit
+        Long    idx,
+        String  register,
+        String  service,
+        String  contentType,
+        Long    contentIdx,
+        Long    hit,
+        Integer version
     ) {
         this.idx = idx;
         this.register = register;
@@ -45,6 +48,7 @@ public class Subscribe implements Serializable {
         this.contentType = contentType;
         this.contentIdx = contentIdx;
         this.hit = hit;
+        this.version = version;
     }
 
     /**
@@ -89,6 +93,13 @@ public class Subscribe implements Serializable {
         return this.hit;
     }
 
+    /**
+     * Getter for <code>jooq_test.subscribe.version</code>.
+     */
+    public Integer getVersion() {
+        return this.version;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("Subscribe (");
@@ -99,6 +110,7 @@ public class Subscribe implements Serializable {
         sb.append(", ").append(contentType);
         sb.append(", ").append(contentIdx);
         sb.append(", ").append(hit);
+        sb.append(", ").append(version);
 
         sb.append(")");
         return sb.toString();

@@ -26,12 +26,12 @@ public class SubscribeConcurrencyTest {
     private SubscribeRepository subscribeRepository;
 
     private static final String REGISTER = "HyunGunSoo";
-    private static int THREAD_LENGTH = 100;
+    private static int THREAD_LENGTH = 1;
 
     @BeforeEach
     public void setUp(){
         final Subscribe subscribe = new Subscribe(REGISTER, ServiceType.NEWS, ContentType.ARTICLE, 100L);
-        subscribeRepository.save(subscribe);
+        subscribeRepository.testSave(subscribe);
     }
 
     @AfterEach
@@ -59,15 +59,17 @@ public class SubscribeConcurrencyTest {
     @Test
     public void Optimistic_Lock_걸고_동시성_테스트() throws InterruptedException {
         CountDownLatch countDownLatch = new CountDownLatch(THREAD_LENGTH);
+        long startTime = System.currentTimeMillis();
         List<Thread> workers = Stream
-                                .generate(() -> new Thread(new OptimisticLockWorker(countDownLatch)))
-                                .limit(THREAD_LENGTH)
-                                .collect(Collectors.toList());
+                .generate(() -> new Thread(new OptimisticLockWorker(countDownLatch)))
+                .limit(THREAD_LENGTH)
+                .collect(Collectors.toList());
 
         workers.forEach(Thread::start);
         countDownLatch.await();
 
         final Long findHit = subscribeService.findByRegister(REGISTER).getHit();
+        System.out.println("latency = " + (System.currentTimeMillis() - startTime) +" m/s");
         assertEquals(findHit, Long.valueOf(THREAD_LENGTH));
     }
 
@@ -75,6 +77,8 @@ public class SubscribeConcurrencyTest {
     @Test
     public void Pessimistic_Lock_걸고_동시성_테스트() throws InterruptedException {
         CountDownLatch countDownLatch = new CountDownLatch(THREAD_LENGTH);
+        long startTime = System.currentTimeMillis();
+
         List<Thread> workers = Stream
                                 .generate(() -> new Thread(new PessimisticLockWorker(countDownLatch)))
                                 .limit(THREAD_LENGTH)
@@ -84,6 +88,7 @@ public class SubscribeConcurrencyTest {
         countDownLatch.await();
 
         final Long findHit = subscribeService.findByRegister(REGISTER).getHit();
+        System.out.println("latency = " + (System.currentTimeMillis() - startTime) +" m/s");
         assertEquals(findHit, Long.valueOf(THREAD_LENGTH));
     }
 
@@ -104,20 +109,6 @@ public class SubscribeConcurrencyTest {
         }
     }
 
-    public class OptimisticLockWorker implements Runnable{
-        private CountDownLatch countDownLatch;
-
-        public OptimisticLockWorker(CountDownLatch countDownLatch){
-            this.countDownLatch = countDownLatch;
-        }
-
-        @Override
-        public void run() {
-            subscribeService.plusHitOptimistic(REGISTER);
-            countDownLatch.countDown();
-        }
-    }
-
     public class PessimisticLockWorker implements Runnable{
         private CountDownLatch countDownLatch;
 
@@ -128,6 +119,20 @@ public class SubscribeConcurrencyTest {
         @Override
         public void run() {
             subscribeService.plusHitPessimistic(REGISTER);
+            countDownLatch.countDown();
+        }
+    }
+
+    public class OptimisticLockWorker implements Runnable{
+        private CountDownLatch countDownLatch;
+
+        public OptimisticLockWorker(CountDownLatch countDownLatch){
+            this.countDownLatch = countDownLatch;
+        }
+
+        @Override
+        public void run() {
+            subscribeService.testPlusHitOptimistic(REGISTER);
             countDownLatch.countDown();
         }
     }
