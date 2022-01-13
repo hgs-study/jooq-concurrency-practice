@@ -7,6 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.jooq.exception.DataChangedException;
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -43,8 +45,12 @@ public class SubscribeService {
             subscribeRepository.plusHitOptimistic(register);
         }catch (DataChangedException e){
             log.error("e.getMessage(): {} ,e: {}",e.getMessage(),e);
-
-            subscribeRepository.plusHitOptimistic(register);
+            try {
+                Thread.sleep(100 + ThreadLocalRandom.current().nextInt(200));
+                subscribeRepository.plusHitOptimistic(register);
+            } catch (InterruptedException interruptedException) {
+                interruptedException.printStackTrace();
+            }
         }
     }
 }
