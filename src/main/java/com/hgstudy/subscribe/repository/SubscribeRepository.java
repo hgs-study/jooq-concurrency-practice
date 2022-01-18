@@ -1,19 +1,16 @@
 package com.hgstudy.subscribe.repository;
 
 import com.hgstudy.subscribe.domain.Subscribe;
+import com.mysql.cj.MysqlConnection;
 import jooq.dsl.tables.records.SubscribeRecord;
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 import org.jooq.conf.Settings;
 import org.jooq.impl.DSL;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
 
 
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -25,10 +22,10 @@ import static jooq.dsl.tables.Subscribe.SUBSCRIBE;
 public class SubscribeRepository {
     private final DSLContext context;
 
-    private static final String driverClassName = "com.mysql.cj.jdbc.Driver";
-    private static final String username = "root";
-    private static final String password = "hgs3164";
-    private static final String url = "jdbc:mysql://localhost:3306/jooq_test";
+    private static final String DRIVER_CLASS_NAME = "com.mysql.cj.jdbc.Driver";
+    private static final String USERNAME = "root";
+    private static final String PASSWORD = "hgs3164";
+    private static final String URL = "jdbc:mysql://localhost:3306/jooq_test";
 
     public void save(Subscribe subscribe){
         context
@@ -140,15 +137,33 @@ public class SubscribeRepository {
         });
     }
 
+//    public void plusHitOptimistic(String register){
+//        try {
+//            getOptimisticContext().transaction(configuration -> {
+//                SubscribeRecord subscribeRecord = DSL.using(configuration)
+//                        .fetchOne(SUBSCRIBE, SUBSCRIBE.REGISTER.eq(register));
+//
+//                subscribeRecord.setHit(subscribeRecord.getHit() + 1L);
+//                subscribeRecord.store();
+//            });
+//        }finally {
+//            System.out.println("closeConnction start = ");
+//            closeConnction();
+//        }
+//    }
+
     public void plusHitOptimistic(String register){
+        try(Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD)){
+            DSL.using(connection, SQLDialect.MYSQL, new Settings().withExecuteWithOptimisticLocking(true)).transaction(configuration -> {
+                SubscribeRecord subscribeRecord = DSL.using(configuration)
+                        .fetchOne(SUBSCRIBE, SUBSCRIBE.REGISTER.eq(register));
 
-        getOptimisticContext().transaction(configuration -> {
-            SubscribeRecord subscribeRecord = DSL.using(configuration)
-                    .fetchOne(SUBSCRIBE, SUBSCRIBE.REGISTER.eq(register));
-
-            subscribeRecord.setHit(subscribeRecord.getHit() + 1L);
-            subscribeRecord.store();
-        });
+                subscribeRecord.setHit(subscribeRecord.getHit() + 1L);
+                subscribeRecord.store();
+            });
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
     }
 
     public void deleteByRegister(String register){
@@ -164,8 +179,8 @@ public class SubscribeRepository {
         Connection connection = null;
 
         try {
-            Class.forName(driverClassName);
-            connection = DriverManager.getConnection(url,username,password);
+            Class.forName(DRIVER_CLASS_NAME);
+            connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
             connection.setAutoCommit(false);
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
@@ -174,5 +189,4 @@ public class SubscribeRepository {
 
         return optimisticContext;
     }
-
 }

@@ -4,10 +4,9 @@ import com.hgstudy.subscribe.domain.Subscribe;
 import com.hgstudy.subscribe.repository.SubscribeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.exception.DataChangedException;
+import org.jooq.exception.DataAccessException;
 import org.springframework.stereotype.Service;
-
-import java.util.concurrent.ThreadLocalRandom;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -40,17 +39,12 @@ public class SubscribeService {
         subscribeRepository.plusHitPessimistic(register);
     }
 
+    @Transactional
     public void testPlusHitOptimistic(String register){
         try {
             subscribeRepository.plusHitOptimistic(register);
-        }catch (DataChangedException e){
-            log.error("e.getMessage(): {} ,e: {}",e.getMessage(),e);
-            try {
-                Thread.sleep(100 + ThreadLocalRandom.current().nextInt(200));
-                subscribeRepository.plusHitOptimistic(register);
-            } catch (InterruptedException interruptedException) {
-                interruptedException.printStackTrace();
-            }
+        }catch (DataAccessException e ) {
+            this.testPlusHitOptimistic(register);
         }
     }
 }
